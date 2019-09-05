@@ -89,6 +89,31 @@ class MeetupController {
 
     return res.json(meetup);
   }
+
+  async delete(req, res) {
+
+    //Recupera o id vindo do middleware do token
+    const user_id = req.userId;
+
+    console.log(user_id);
+
+    //Faz o select pelo id vindo por parametro na rota
+    const meetup = await Meetup.findByPk(req.params.id);
+
+    //Verifica se esse meetup é um meetup do usuario
+    if (meetup.user_id !== user_id) {
+      return res.status(401).json({ error: 'Usuario não autorizado.' });
+    }
+
+    //Verifica se o past está true
+    if (meetup.past) {
+      return res.status(400).json({ error: "Can't delete past meetups." });
+    }
+
+    await meetup.destroy();
+
+    return res.send();
+  }
 }
 
 export default new MeetupController();
