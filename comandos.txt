@@ -1,0 +1,4 @@
+migration: yarn sequelize migration:create --name=name-do-que-migration-faz
+           yarn sequelize db:migrate
+
+adicionar biblioteca data-fns: yarn add data-fns

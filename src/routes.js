@@ -7,6 +7,7 @@ import multerConfig from './config/multer';
 import UserController from './app/controllers/UserController';
 import SessionController from './app/controllers/SessionController';
 import FileController from './app/controllers/FileController';
+import MeetupController from './app/controllers/MeetupController';
 
 import authMiddleware from './app/middlewares/auth';
 
@@ -23,5 +24,9 @@ routes.put('/users', authMiddleware, UserController.update);
 
 //Cria uma rota com um middleware para capturar um arquivo por vez(por isso o single)
 routes.post('/files', upload.single('files'), FileController.store);
+
+//Rotas do meetup
+routes.get('/meetup', MeetupController.index);
+routes.post('/meetup', MeetupController.store);
 
 export default routes;
