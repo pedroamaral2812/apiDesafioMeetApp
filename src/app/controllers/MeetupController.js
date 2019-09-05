@@ -47,6 +47,48 @@ class MeetupController {
     return res.json(meetup);
 
   }
+
+  async update(req,res) {
+
+    //Valida os campos, mas dessa vez nenhum campo é obrigatorio pois
+    const schema = Yup.object().shape({
+      titulo: Yup.string(),
+      file_id: Yup.number(),
+      descricao: Yup.string(),
+      localizacao: Yup.string(),
+      data: Yup.date(),
+    });
+
+    //Se os campos não foram preenchidos corretamente
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    //Recupera o id do usuario
+    const user_id = req.userId;
+
+    //Recupera os dados do meetup
+    const meetup = await Meetup.findByPk(req.params.id);
+
+    //Verifica se esse usuario é o que criou os meetups
+    if (meetup.user_id !== user_id) {
+      return res.status(401).json({ error: 'Usuario não autorizado.' });
+    }
+
+    //Verifica se o meetup já aconteceu
+    if (isBefore(parseISO(req.body.date), new Date())) {
+      return res.status(400).json({ error: 'Meetup com data já passada.' });
+    }
+
+    //Verifica se já passou o meetup
+    if (meetup.past) {
+      return res.status(400).json({ error: "Can't update past meetups." });
+    }
+
+    await meetup.update(req.body);
+
+    return res.json(meetup);
+  }
 }
 
 export default new MeetupController();
