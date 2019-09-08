@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { Op } from 'sequelize';
 import { isBefore, startOfDay, endOfDay, parseISO } from 'date-fns';
 
 import Meetup from '../models/Meetup';
@@ -6,11 +7,30 @@ import User from '../models/User';
 
 class MeetupController {
   async index(req, res) {
-    const meetup = await Meetup.findAll({
-      where: {user_id : 1}
+    const where = {};
+
+    //Faz o filtro por pagina, onde se o usuario não passar a pagina por padrãos erá pagina 1
+    const page = req.query.page || 1;
+
+
+    //Pega a data e transforma em um objeto parseIso
+    if (req.query.date) {
+      const searchDate = parseISO(req.query.date);
+
+      //Faz o between através de dois metodos
+      where.data = {
+        [Op.between]: [startOfDay(searchDate), endOfDay(searchDate)],
+      };
+    }
+
+    const meetups = await Meetup.findAll({
+      where,
+      include: [User],
+      limit: 10,
+      offset: 10 * page - 10,
     });
 
-    return res.json(meetup);
+    return res.json(meetups);
   }
 
   async store(req, res) {
@@ -94,8 +114,6 @@ class MeetupController {
 
     //Recupera o id vindo do middleware do token
     const user_id = req.userId;
-
-    console.log(user_id);
 
     //Faz o select pelo id vindo por parametro na rota
     const meetup = await Meetup.findByPk(req.params.id);
